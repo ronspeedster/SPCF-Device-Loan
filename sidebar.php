@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,6 +18,7 @@
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="icon" href="img/logo.png" type="image/gif" sizes="16x16">
 <style>
     .bg-gradient-primary {
         background-color: #0f1e5d !important;
