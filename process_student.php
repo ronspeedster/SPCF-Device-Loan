@@ -1,53 +1,53 @@
 <?php
 include('dbh.php');
+$updateApplication = false;
 $date = date_default_timezone_set('Asia/Manila');
 $date = date('Y-m-d');
-$updateApplication = false;
-
 
 if(isset($_POST['save'])){
 
-    $employee_id = mysqli_real_escape_string($mysqli, $_POST['id']);
+    $student_id = mysqli_real_escape_string($mysqli, $_POST['id']);
     $fullname = mysqli_real_escape_string($mysqli, $_POST['fullname']);
     $device_id = mysqli_real_escape_string($mysqli, $_POST['device']);
     $months = mysqli_real_escape_string($mysqli, $_POST['months']);
+    $level = mysqli_real_escape_string($mysqli, $_POST['level']);
 
-    $mysqli->query("INSERT INTO employee (employee_id, full_name, device_id, months, application_date) VALUES('$employee_id','$fullname','$device_id','$months','$date')") or die($mysqli->error());
+    $mysqli->query("INSERT INTO student (student_id, full_name, device_id, level, months, application_date) VALUES('$student_id','$fullname','$device_id', '$level','$months', '$date')") or die($mysqli->error());
 
-    $_SESSION['message'] = "Employee loan application has been added!";
+    $_SESSION['message'] = "Student loan application has been added!";
     $_SESSION['msg_type'] = "success";
-    header('location: employee.php');
+    header('location: student.php');
 }
 
 if(isset($_POST['update'])){
-    $employee_id = mysqli_real_escape_string($mysqli, $_POST['id']);
+    $student_id = mysqli_real_escape_string($mysqli, $_POST['id']);
     $fullname = mysqli_real_escape_string($mysqli, $_POST['fullname']);
     $device_id = mysqli_real_escape_string($mysqli, $_POST['device']);
     $months = mysqli_real_escape_string($mysqli, $_POST['months']);
     $application_id = strtoupper(mysqli_real_escape_string($mysqli, $_POST['application_id']));
 
-    $mysqli->query("UPDATE employee SET employee_id='$employee_id', full_name='$fullname', device_id='$device_id', months='$months' WHERE id='$application_id' ") or die ($mysqli->error());
+    $mysqli->query("UPDATE student SET student_id='$student_id', full_name='$fullname', device_id='$device_id', months='$months' WHERE id='$application_id' ") or die ($mysqli->error());
 
-    $_SESSION['message'] = "Employee loan application has been updated!";
+    $_SESSION['message'] = "Student loan application has been updated!";
     $_SESSION['msg_type'] = "success";
-    header('location: employee.php');
+    header('location: student.php');
 }
 
 if(isset($_GET['delete'])){
     $id = $_GET['delete'];
-    $mysqli->query("DELETE FROM employee WHERE id='$id'") or die($mysqli->error());
+    $mysqli->query("DELETE FROM student WHERE id='$id'") or die($mysqli->error());
     $_SESSION['message'] = "Application has been deleted!";
     $_SESSION['msg_type'] = "danger";
-    header('location: employee.php');
+    header('location: student.php');
 }
 
 if(isset($_GET['edit'])){
     $updateApplication = true;
     $applicattion_id = $_GET['edit'];
-    $getEditAppliation = $mysqli->query("SELECT * FROM employee WHERE id='$applicattion_id' ") or die ($mysqli->error());
+    $getEditAppliation = $mysqli->query("SELECT * FROM student WHERE id='$applicattion_id' ") or die ($mysqli->error());
     $newEditAppliation = $getEditAppliation->fetch_array();
 
-    $employee_id = $newEditAppliation['employee_id'];
+    $student_id = $newEditAppliation['student_id'];
     $full_name = $newEditAppliation['full_name'];
     $months = $newEditAppliation['months'];
 

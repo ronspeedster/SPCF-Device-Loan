@@ -1,15 +1,18 @@
 <?php
-require_once 'process_employee.php';
+require_once 'process_student.php';
 
 include('sidebar.php');
 $protocol = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
 $getURI = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $_SESSION['getURI'] = $getURI;
 
-$getDevices = $mysqli->query("SELECT * FROM devices WHERE deleted='0' ORDER BY price DESC") or die ($mysqli->error);
-$getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_name, e.months, e.application_date, d.brand, d.model, d.price FROM employee e
+$getDevices = $mysqli->query("SELECT * FROM devices
+    WHERE deleted = '0'
+    ORDER BY price DESC") or die ($mysqli->error);
+$getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name, s.months, s.level, s.application_date, d.brand, d.model, d.price
+    FROM student s
     JOIN devices d
-    ON e.device_id = d.id') or die ($mysqli->error);
+    ON s.device_id = d.id') or die ($mysqli->error);
 
 ?>
 <!-- Content Wrapper -->
@@ -25,7 +28,7 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
 
             <!-- Page Heading -->
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 text-gray-800">Employee</h1>
+                <h1 class="h3 mb-0 text-gray-800">Student</h1>
             </div>
 
             <!-- Alert here -->
@@ -40,38 +43,48 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
             <?php } ?>
             <!-- End Alert here -->
 
-            <!-- Add Employee -->
+            <!-- Add Student -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Add Employee Loan Application</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Add Student Loan Application</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <form method="post" action="process_employee.php">
+                        <form method="post" action="process_student.php">
                             <table class="table" width="100%" cellspacing="0">
                                 <thead>
                                 <tr>
-                                    <th width="25%">ID</th>
-                                    <th width="25%">Full Name</th>
-                                    <th width="25%">Device / Laptop</th>
-                                    <th width="25%">No. of Months</th>
+                                    <th width="20%">Student ID</th>
+                                    <th width="20%">Full Name</th>
+                                    <th width="20%">Device / Laptop</th>
+                                    <th width="20%">Level</th>
+                                    <th width="20%">No. of Months</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td><input type="text" name="id" class="form-control" placeholder="ex: 0505050" value="<?php if($updateApplication){echo $employee_id;} ?>" required></td>
+                                    <td><input type="text" name="id" class="form-control" placeholder="ex: 0505050" value="<?php if($updateApplication){echo $student_id;} ?>" required></td>
                                     <td><input type="text" name="fullname" class="form-control" placeholder="ex: Juan Cruz ZXC" value="<?php if($updateApplication){echo $full_name;} ?>" required></td>
                                     <td>
                                         <select class="form-control" name="device" required>
                                             <option value="" required disabled selected>Select</option>
                                             <?php while($newDevices=$getDevices->fetch_assoc()){ ?>
                                                 <option value="<?php echo $newDevices['id']; ?>">
-                                                    <?php echo '₱'.number_format($newDevices['price'],2).' - '.$newDevices['brand'].' - '.$newDevices['model']; ?>
+                                                    <?php echo '₱'.$newDevices['price'].' - '.$newDevices['brand'].' - '.$newDevices['model']; ?>
                                                 </option>
                                             <?php } ?>
                                         </select>
                                     </td>
-                                    <td><input type="number" name="months" class="form-control" min="0" max="12" placeholder="ex: 12" value="<?php if($updateApplication){echo $months;} ?>" required></td>
+                                    <td>
+                                        <select class="form-control" name="level">
+                                            <option value="" disabled selected>Select</option>
+                                            <option value="college">College</option>
+                                            <option value="basic_education">Basic Education</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="months" class="form-control" min="0" max="10" placeholder="ex: 12" value="<?php if($updateApplication){echo $months;} ?>" required>
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -81,25 +94,26 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
                                 <input type="text" value="<?php echo $applicattion_id; ?>" style="visibility: hidden" name="application_id" readonly>
                                 <button class="float-right btn btn-sm btn-primary m-1" name="update" type="submit"><i class="far fa-save" ></i> Update</button>
                             <?php } ?>
-                                <a href="employee.php" class="btn btn-danger btn-sm m-1 float-right"><i class="fas as fa-sync"></i> Clear/Refresh</a>
+                                <a href="student.php" class="btn btn-danger btn-sm m-1 float-right"><i class="fas as fa-sync"></i> Clear/Refresh</a>
                         </form>
                     </div>
                 </div>
             </div>
-            <!-- End Add Employee -->
+            <!-- End Add Student -->
 
-            <!-- List of Employees -->
+            <!-- List of Student -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">List of Employees</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">List of Students</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="employeeTable" width="100%" cellspacing="0">
+                        <table class="table table-bordered" id="studentTable" width="100%" cellspacing="0">
                             <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>Student ID</th>
                                 <th>Full Name</th>
+                                <th>Level</th>
                                 <th>Laptop</th>
                                 <th>Price</th>
                                 <th>Balance</th>
@@ -110,25 +124,36 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
                             </tr>
                             </thead>
                             <tbody>
-                            <?php while($newEmployeeApplication=$getEmployeeApplication->fetch_assoc()){ ?>
+                            <?php while($newStudentApplication=$getStudentApplication->fetch_assoc()){
+                            $id = $newStudentApplication['id'];
+                                ?>
                                 <tr>
-                                    <td><?php echo $newEmployeeApplication['employee_id']; ?></td>
-                                    <td><?php echo $newEmployeeApplication['full_name']; ?></td>
-                                    <td><?php echo $newEmployeeApplication['brand'].' '.$newEmployeeApplication['model']; ?></td>
-                                    <td>₱<?php echo number_format($newEmployeeApplication['price'],2); ?></td>
-                                    <td><?php echo $newEmployeeApplication['price']; ?> minus Balance </td>
-                                    <td><?php echo $newEmployeeApplication['months']; ?> minus months of paid</td>
-                                    <td><?php echo $newEmployeeApplication['price']; ?> Balance divide by no of mos remaining</td>
-                                    <td><?php echo $newEmployeeApplication['application_date']; ?></td>
+                                    <td>
+                                        <a target="_blank" href="add_payment.php?classification=student&id=<?php echo $id; ?>">
+                                            <?php echo $newStudentApplication['student_id']; ?>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a target="_blank" href="add_payment.php?classification=student&id=<?php echo $id; ?>">
+                                            <?php echo $newStudentApplication['full_name']; ?>
+                                        </a>
+                                    </td>
+                                    <td><?php echo strtoupper($newStudentApplication['level']); ?></td>
+                                    <td><?php echo $newStudentApplication['brand'].' '.$newStudentApplication['model']; ?></td>
+                                    <td>₱<?php echo number_format($newStudentApplication['price'],2); ?></td>
+                                    <td><?php echo $newStudentApplication['price']; ?> minus Balance </td>
+                                    <td><?php echo $newStudentApplication['months']; ?> minus months of paid</td>
+                                    <td><?php echo $newStudentApplication['price']; ?> Balance divide by no of mos remaining</td>
+                                    <td><?php echo $newStudentApplication['application_date']; ?></td>
                                     <td>
                                         <!-- Start Drop down Delete here -->
-                                        <a href="employee.php?edit=<?php echo $newEmployeeApplication['id']; ?>" class="btn btn-info btn-sm mb-1"><i class="far fa-edit"></i> Edit</a>
+                                        <a href="student.php?edit=<?php echo $newStudentApplication['id']; ?>" class="btn btn-info btn-sm mb-1"><i class="far fa-edit"></i> Edit</a>
                                         <button class="btn btn-danger btn-secondary dropdown-toggle btn-sm mb-1" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <i class="far fa-trash-alt"></i> Delete
                                         </button>
                                         <div class="dropdown-menu p-1" aria-labelledby="dropdownMenuButton btn-sm">
                                             Are you sure you want to delete? You cannot undo the changes<br/>
-                                            <a href="process_employee.php?delete=<?php echo $newEmployeeApplication['id'] ?>" class='btn btn-danger btn-sm'>
+                                            <a href="process_student.php?delete=<?php echo $id; ?>" class='btn btn-danger btn-sm'>
                                                 <i class="far fa-trash-alt"></i> Confirm Delete
                                             </a>
                                             <a href="#" class='btn btn-success btn-sm'><i class="far fa-window-close"></i> Cancel</a>
@@ -141,7 +166,7 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
                     </div>
                 </div>
             </div>
-            <!-- End Employees -->
+            <!-- End Student Lists -->
 
         </div>
         <!-- /.container-fluid -->
@@ -152,7 +177,7 @@ $getEmployeeApplication = $mysqli->query('SELECT e.id, e.employee_id, e.full_nam
     <!-- JS here -->
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#employeeTable').DataTable( {
+            $('#studentTable').DataTable( {
                 "pageLength": 25
             } );
         } );

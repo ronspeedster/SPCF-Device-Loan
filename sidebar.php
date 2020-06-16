@@ -4,7 +4,7 @@ if (!isset($_SESSION)) {
 }
 
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("location: login.php");
 }
 ?>
 <!DOCTYPE html>
@@ -93,7 +93,7 @@ if (!isset($_SESSION['username'])) {
                 <div class="bg-white py-2 collapse-inner rounded">
                     <h6 class="collapse-header">Type:</h6>
                     <a class="collapse-item" href="employee.php"><i class="fas fa-user-tag"></i> Employee</a>
-                    <a class="collapse-item" href="#"><i class="fas fa-graduation-cap"></i> Student</a>
+                    <a class="collapse-item" href="student.php"><i class="fas fa-graduation-cap"></i> Student</a>
                 </div>
             </div>
         </li>
@@ -107,9 +107,9 @@ if (!isset($_SESSION['username'])) {
 
         <!-- Nav Item - Charts -->
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="report.php">
                 <i class="fas fa-fw fa-chart-area"></i>
-                <span>Charts</span></a>
+                <span>Reports</span></a>
         </li>
 
         <!-- Nav Item - Accounts -->
