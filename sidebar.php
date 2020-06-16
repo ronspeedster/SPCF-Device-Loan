@@ -112,6 +112,13 @@ if (!isset($_SESSION['username'])) {
                 <span>Reports</span></a>
         </li>
 
+        <!-- Nav Item - Inquiries -->
+        <li class="nav-item">
+            <a class="nav-link" href="inquiry.php">
+                <i class="fas fa-fw fa-question-circle"></i>
+                <span>Inquiry</span></a>
+        </li>
+
         <!-- Nav Item - Accounts -->
         <li class="nav-item">
             <a class="nav-link" href="#">
