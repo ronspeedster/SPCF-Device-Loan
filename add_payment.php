@@ -25,7 +25,25 @@ if(isset($_GET['id'])){
         WHERE e.id = '$applicationID' ") or die ($mysqli->error);
         $newApplication = $getApplication->fetch_array();
     }
+    //Get Total Paid
+    $getTotalPaid = $mysqli->query(" SELECT SUM(payment) as total_payment FROM payment WHERE class = '$classification' AND application_id = '$applicationID'  ") or die ($mysqli->error);
+    $newTotalPaid = $getTotalPaid->fetch_array();
+    $total_payment = $newTotalPaid['total_payment'];
+    //Get total Months
+    $getTotalMonthsPaid = $mysqli->query(" SELECT count(application_id) as total_months FROM payment WHERE class = '$classification' AND application_id = '$applicationID'  ") or die ($mysqli->error);
+    $newTotalMonths = $getTotalMonthsPaid->fetch_array();
+    $total_months = $newTotalMonths['total_months'];
+    $months = $newApplication['months'];
+    $remainining_months = $months - $total_months;
 
+    //reamining balance
+    $remainingprice = $newApplication['price'] - $total_payment;
+    //amount due
+    $amountdue = $remainingprice / $remainining_months;
+
+
+    //Get Ledger Payments
+    $getPayment = $mysqli->query(" SELECT * FROM payment WHERE class = '$classification' AND application_id = '$applicationID'  ") or die ($mysqli->error);
 }
 
 if(!isset($_GET['id'])){
@@ -64,48 +82,74 @@ if(!isset($_GET['id'])){
             <?php } ?>
             <!-- End Alert here -->
 
-            <!-- List of Student -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><?php echo $newApplication['full_name']; ?></h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <form action="process_payment.php" method="post">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Device</th>
+                                        <th>Total Amount</th>
+                                        <th>Paid Amount</th>
+                                        <th>Remaining Balance</th>
+                                        <th>Amount Due</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><?php echo $newApplication['model']; ?></td>
+                                        <td>₱ <?php echo  number_format($newApplication['price'],2);?></td>
+                                        <td class="text-success">₱ <?php echo number_format($total_payment,2);?></td>
+                                        <td class="text-danger">₱ <?php echo number_format($remainingprice,2);?></td>
+                                        <td class="text-danger"><b>₱<?php echo number_format($amountdue, 2); ?></b></td>
+                                        <td><input type="number" name="amount" min="0" max="<?php echo $remainingprice; ?>" min="0" placeholder="ex: <?php echo number_format($remainingprice); ?>" class="form-control" required></td>
+                                    </tr>
+                                </tbody>
+                                <input type="text" name="id" value="<?php echo $applicationID; ?>" style="visibility: hidden;" readonly>
+                                <input type="text" name="class" value="<?php echo $classification; ?>" style="visibility: hidden;" readonly>
+                            </table>
+                            <button type="submit" name="save" class="btn btn-sm btn-success mb-1 float-right">Add Payment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Ledger -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Ledger Account - <?php echo $newApplication['full_name']; ?></h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Device</th>
-                                    <th>Total Amount</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><?php echo $newApplication['model']; ?></td>
-                                    <td><?php echo  1;?></td>
-                                    <td><input type="number" name="amount" max="1000000" min="0" placeholder="ex: 50000" class="form-control"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                            <input type="text" name="id" value="<?php echo $applicationID; ?>">
-                            <input type="text" name="class" value="<?php echo $classification; ?>">
-
                         <table class="table table-bordered" id="paymentTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>asd</th>
-                                    <th>asd</th>
-                                    <th>asd</th>
-                                    <th>asd</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <?php
+                                $total = 0;
+                                while($newPayment=$getPayment->fetch_assoc()){ ?>
                                 <tr>
-                                    <td>asd</td>
-                                    <td>asd</td>
-                                    <td>asd</td>
-                                    <td>asd</td>
+                                    <td><?php echo $newPayment['payment_date']; ?></td>
+                                    <td>₱ <?php echo number_format($newPayment['payment'],2); ?></td>
                                 </tr>
+                                <?php
+                                    $total = $total + $newPayment['payment'];
+                                 } ?>
+                                <tfoot>
+                                <tr>
+                                    <td><b class="float-right">TOTAL:</b></td>
+                                    <td><b class="text-success">₱<?php echo number_format($total, 2); ?></b></td>
+                                </tr>
+                                </tfoot>
                             </tbody>
                         </table>
                     </div>
