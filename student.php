@@ -9,6 +9,7 @@ $_SESSION['getURI'] = $getURI;
 $getDevices = $mysqli->query("SELECT * FROM devices
     WHERE deleted = '0'
     ORDER BY price DESC") or die ($mysqli->error);
+
 $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name, s.months, s.level, s.application_date, d.brand, d.model, d.price
     FROM student s
     JOIN devices d
@@ -124,8 +125,27 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                             </tr>
                             </thead>
                             <tbody>
-                            <?php while($newStudentApplication=$getStudentApplication->fetch_assoc()){
+                            <?php
+                            $studentTotal = 0;
+                            while($newStudentApplication=$getStudentApplication->fetch_assoc()){
+                            $studentTotal++;
                             $id = $newStudentApplication['id'];
+                            //Student
+                            $getMonth = $mysqli->query(" SELECT COUNT(id) AS month_paid FROM payment
+                                WHERE application_id = '$id'
+                                AND class = 'student' ") or die ($mysqli->error);
+                            $newMonth = $getMonth->fetch_array();
+
+                            $months = $newStudentApplication['months'] - $newMonth['month_paid'];
+
+                            $getCollectedStudent = $mysqli->query(" SELECT SUM(p.payment) AS total_collected
+                                FROM payment p
+                                WHERE p.application_id = '$id'
+                                AND p.class = 'student' ") or die ($mysqli->error);
+                            $newCollectedStudent = $getCollectedStudent->fetch_array();
+                            $remainingBalance = $newStudentApplication['price']-$newCollectedStudent['total_collected'];
+
+                            $dueThisMonth = $remainingBalance / $months;
                                 ?>
                                 <tr>
                                     <td>
@@ -135,15 +155,15 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                                     </td>
                                     <td>
                                         <a target="_blank" href="add_payment.php?classification=student&id=<?php echo $id; ?>">
-                                            <?php echo $newStudentApplication['full_name']; ?>
+                                            <?php echo strtoupper($newStudentApplication['full_name']); ?>
                                         </a>
                                     </td>
                                     <td><?php echo strtoupper($newStudentApplication['level']); ?></td>
                                     <td><?php echo $newStudentApplication['brand'].' '.$newStudentApplication['model']; ?></td>
-                                    <td>₱<?php echo number_format($newStudentApplication['price'],2); ?></td>
-                                    <td><?php echo $newStudentApplication['price']; ?> minus Balance </td>
-                                    <td><?php echo $newStudentApplication['months']; ?> minus months of paid</td>
-                                    <td><?php echo $newStudentApplication['price']; ?> Balance divide by no of mos remaining</td>
+                                    <td>₱ <?php echo number_format($newStudentApplication['price'],2); ?></td>
+                                    <td class="text-danger">₱ <?php echo number_format($remainingBalance,2); ?></td>
+                                    <td class="font-weight-bold"><?php echo $months; ?></td>
+                                    <td>₱ <?php echo number_format($dueThisMonth,2); ?></td>
                                     <td><?php echo $newStudentApplication['application_date']; ?></td>
                                     <td>
                                         <!-- Start Drop down Delete here -->
@@ -163,6 +183,7 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                             <?php } ?>
                             </tbody>
                         </table>
+                        <center><b>Total Students: <?php echo $studentTotal; ?></b></center>
                     </div>
                 </div>
             </div>
@@ -186,6 +207,14 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
     include('footer.php');
     ?>
     <style type="text/css">
+        @page { size: letter landscape }
+        .page
+            {
+             -webkit-transform: rotate(-90deg); 
+             -moz-transform:rotate(-90deg);
+             filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+            }
+        @media print and (orientation:landscape) {}        
         /*
         Max width before this PARTICULAR table gets nasty. This query will take effect for any screen smaller than 760px and also iPads specifically.
         */

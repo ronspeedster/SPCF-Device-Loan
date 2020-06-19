@@ -9,10 +9,6 @@ $_SESSION['getURI'] = $getURI;
 $getDevices = $mysqli->query("SELECT * FROM devices
     WHERE deleted = '0'
     ORDER BY price DESC") or die ($mysqli->error);
-$getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name, s.months, s.level, s.application_date, d.brand, d.model, d.price
-    FROM student s
-    JOIN devices d
-    ON s.device_id = d.id') or die ($mysqli->error);
 
 ?>
 <!-- Content Wrapper -->
@@ -56,11 +52,14 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                                 <th>Brand</th>
                                 <th>Model</th>
                                 <th>Price</th>
-                                <th>No. pof Students</th>
-                                <th>No. pof Employees</th>
+                                <th>No. of Students</th>
+                                <th>No. of Employees</th>
+                                <th>Total Collected Amount</th>
                             </thead>
                             <tbody>
-                            <?php while($newDevices=$getDevices->fetch_assoc()){
+                            <?php
+                                $grandTotal = 0;
+                                while($newDevices=$getDevices->fetch_assoc()){
                                 $deviceID = $newDevices['id'];
                                 //Employee
                                 $getEmployeeAmountDevices = $mysqli->query(" SELECT COUNT(id) AS employe_count FROM employee WHERE device_id = '$deviceID' ") or die ($mysqli->error);
@@ -71,7 +70,17 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                                 $newStudentAmountDevices = $getStudentAmountDevices->fetch_array();
                                 $student_count = $newStudentAmountDevices['student_count'];
                                 $total_amount = $student_count + $employe_count;
+                                //Get Collected for Student
+                                $getCollectedStudent = $mysqli->query(" SELECT SUM(p.payment) AS total_collected FROM devices d
+                                    JOIN student s
+                                    ON s.device_id = d.id
+                                    JOIN payment p
+                                    ON s.id = p.application_id
+                                    WHERE device_id = '$deviceID' ") or die ($mysqli->error);
+                                $newCollectedStudent = $getCollectedStudent->fetch_array();
+                                $totalCollection = $newCollectedStudent['total_collected'];
 
+                                $grandTotal = $grandTotal + $totalCollection;
                                 ?>
                                 <tr>
                                     <td><?php echo $newDevices['brand']; ?></td>
@@ -79,8 +88,16 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
                                     <td>₱ <?php echo number_format($newDevices['price']); ?> </td>
                                     <td><?php echo $student_count; ?></td>
                                     <td><?php echo $employe_count; ?></td>
+                                    <td class="text-success"><b>₱ <?php echo number_format($totalCollection,2); ?></b></td>
                                 </tr>
-                            <?php } ?>
+                                 <?php
+                                    } ?>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="5"><span class="float-right">Grand Total:</span></th>
+                                        <th class="text-success">₱ <?php echo number_format($grandTotal,2); ?></th>
+                                    </tr>
+                                </tfoot>
                             </tbody>
                         </table>
                     </div>
@@ -105,7 +122,15 @@ $getStudentApplication = $mysqli->query('SELECT s.id, s.student_id, s.full_name,
     <?php
     include('footer.php');
     ?>
-    <style type="text/css">
+    <style type="text/css" media="print">
+        @page { size: letter landscape }
+        .page
+            {
+             -webkit-transform: rotate(-90deg); 
+             -moz-transform:rotate(-90deg);
+             filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+            }
+        @media print and (orientation:landscape) {}
         /*
         Max width before this PARTICULAR table gets nasty. This query will take effect for any screen smaller than 760px and also iPads specifically.
         */
